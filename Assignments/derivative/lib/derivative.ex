@@ -62,8 +62,8 @@ defmodule Derivative do
   # Rule: dx/dx = 1
   def deriv({:var, v}, v) do {:num, 1} end
 
-  # Derivate a constant (like pi, allways zero).
-  # Rule: d/dx = 0
+  # Derivate a variable that isn't the target one.
+  # Rule: dy/dx = 0
   def deriv({:var, _}, _) do {:num, 0} end
 
   # Derivate sin.
