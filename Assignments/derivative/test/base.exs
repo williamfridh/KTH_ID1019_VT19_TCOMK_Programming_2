@@ -60,3 +60,6 @@ Derivative.test({:div, {:num, 1}, {:sin, {:var, :x}}}, :x)
 
 #1/sin(2x) >> (-2cos(2x))/(sin(2x))^2
 Derivative.test({:div, {:num, 1}, {:sin, {:mul, {:num, 2}, {:var, :x}}}}, :x)
+
+#ln(x^2) >> (2x)/x^2
+Derivative.test({:ln, {:exp, {:var, :n}, {:num, 2}}}, :x)
