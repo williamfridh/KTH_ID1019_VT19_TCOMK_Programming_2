@@ -1,6 +1,9 @@
 # TODO: Add support for finding the derivative of cos(x), -sin(x), and -cos(x).
 # TODO: Add support for subtraction expression.
 # TODO: Remove simplication for numbers if possible.
+# TOTO: Combine all prettify/1 into a single funciton.
+# TOTO: Make more use of lieral and expr.
+# TOTO: Turn the first three deriv/? into a single funciton.
 
 # NOTE: Subtraction isn't required as one can multiply by -1.
 # NOTE: The doce war first written using :nil instead of {:num, 0}, but {:num, 0} adds to consistency.
