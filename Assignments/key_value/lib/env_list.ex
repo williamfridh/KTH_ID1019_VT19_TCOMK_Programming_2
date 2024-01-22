@@ -9,7 +9,7 @@
   defmodule EnvList do
 
     @moduledoc """
-    This module is used for basic support for maps with pairs. It holds
+    This module is used for basic support for lists of pairs. It holds
     the most basic functions one might need.
 
     The structure is based on the instructions given on the first page
@@ -19,28 +19,48 @@
 
 
     @doc """
-    Return an empty map.
+    Return an empty list.
 
     # Exmaple:
-    # new_map = EnvList.new()
+    # new_list = EnvList.new()
     """
-    def new() do %{} end
+    def new() do [] end
 
 
 
     @doc """
-    Return a map where an association of the
+    Return a list where an association of the
     key key and the data structure value has been added to the given
-    map. If there already is an association of the key the value is changed.
+    list. If there already is an association of the key the value is changed.
 
-    # Exmaple:
-    # map = EnvList.new(map, :a, 42)
+    # Example:
+    list = []
+    list = EnvList.add(list, :a, "a")
+    >> a a
+    list = EnvList.add(list, :b, "b")
+    >> a a, b b
+    list = EnvList.add(list, :c, "c")
+    >> a a, b b, c c
+    list = EnvList.add(list, :b, "2")
+    >> a a, b 2, c c
     """
-    def add(map, key, value) do
-      if Map.has_key?(map, :key) do
-        %{map | key: value}
+    def add([], key, value) do
+      [{key, value }]
+    end
+
+    def add([h | t], key, value) do
+      if h == t do
+        # Insert new.
+        [h | {key, value}]
       else
-        Map.put(map, key, value)
+        {k, v} = h
+        if k == key do
+          # Update current.
+          [{k, value} | t]
+        else
+          # Dive deeper.
+          [h | add(t, key, value)]
+        end
       end
     end
 
@@ -53,8 +73,8 @@
     # Exmaple:
     # res = EnvList.lookup(map, :a)
     """
-    def lookup(map, key) do
-      Map.get(map, key)
+    def lookup([h | t], key) do
+      [h | t]
     end
 
 
