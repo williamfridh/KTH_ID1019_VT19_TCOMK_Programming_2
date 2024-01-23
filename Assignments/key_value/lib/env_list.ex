@@ -71,10 +71,21 @@
     the data structure value, or nil if no association is found.
 
     # Exmaple:
-    # res = EnvList.lookup(map, :a)
+    res = EnvList.lookup(map, :a)
     """
-    def lookup([h | t], key) do
-      [h | t]
+    def lookup([], _) do nil end
+    def lookup(map, key) do
+      [h | t] = map
+      {k, v} = h
+      if k == key do
+        h
+      else
+        if h == t do
+          nil
+        else
+          lookup(t, key)
+        end
+      end
     end
 
 
@@ -83,12 +94,18 @@
     Returns a map where the association of the key
     key has been removed.
 
-    # Exmaple:
-    # new_map = EnvList.remove(map, :a)
+    # Example:
+    new_map = EnvList.remove(map, :a)
     """
+    def remove([], key) do nil end
     def remove(map, key) do
-      {value, updated_map} = Map.pop(map, key)
-      updated_map
+      [h | t] = map
+      {k, _} = h
+      if k == key do
+        t
+      else
+        [h | remove(t, key)]
+      end
     end
 
   end
