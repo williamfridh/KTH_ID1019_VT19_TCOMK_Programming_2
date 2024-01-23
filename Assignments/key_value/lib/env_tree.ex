@@ -130,10 +130,7 @@ defmodule EnvTree do
   A
 
   """
-  def remove(nil, _) do
-    # Empty tree detected.
-    "Error: Empty tree detected."
-  end
+  def remove(nil, _) do nil end # Empty tree detected.
 
   def remove({:node, key, _, nil, right}, key) do
     # Found key, and right node exists which will replace the current.

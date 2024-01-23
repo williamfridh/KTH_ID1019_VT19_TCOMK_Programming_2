@@ -44,23 +44,13 @@
     list = EnvList.add(list, :b, "2")
     >> a a, b 2, c c
     """
-    def add([], key, value) do
-      [{key, value }]
-    end
-
+    def add([], key, value) do [{key, value }] end
     def add([h | t], key, value) do
-      if h == t do
-        # Insert new.
-        [h | {key, value}]
-      else
-        {k, v} = h
-        if k == key do
-          # Update current.
-          [{k, value} | t]
-        else
-          # Dive deeper.
-          [h | add(t, key, value)]
-        end
+      {k, v} = h
+      if k == key do # Update current.
+        [{k, value} | t]
+      else # Dive deeper.
+        [h | add(t, key, value)]
       end
     end
 
