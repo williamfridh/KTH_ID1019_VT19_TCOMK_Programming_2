@@ -24,7 +24,7 @@ defmodule Env do
     iex> Env.lookup(env, :x)
     5
   """
-  def lookup([], _) do "Error: Variable not found in environment." end
+  def lookup([], _) do "Error: Variable not found in the provided environment." end
   def lookup([{k, v} | h], var) do
     if k == var do
       v
