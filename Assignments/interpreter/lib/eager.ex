@@ -49,7 +49,7 @@ defmodule Eager do
   def eval_match({:var, id}, str, env) do
     case Env.lookup(env, id) do
       nil ->
-        {:ok, [{id, str}]}
+        {:ok, Env.add(env, id, str)}
       {_, ^str} ->
         {:ok, env}
       {_, _} ->
@@ -57,15 +57,67 @@ defmodule Eager do
     end
   end
 
-  def eval_match({:cons, hp, tp}, ..., env) do
-    case eval_match(..., ..., env) do
+  def eval_match({:cons, hp, tp}, {a, b}, env) do
+    case eval_match(hp, a, env) do
       :fail ->
         :fail
-      ... ->
-        eval_match(..., ..., env)
+      {:ok, env} ->
+        eval_match(tp, b, env)
     end
   end
 
   def eval_match(_, _, _) do :fail end
+
+
+
+  @doc """
+  # Sequence Evaluation
+  """
+  def extract_vars([]) do nil end
+  def extract_vars([{k, v} | t]) do
+    if t != [] do
+      r = extract_vars(t)
+      if k == :var do
+        [v | r]
+      else
+        r
+      end
+    else
+      if k == :var do
+        [v]
+      end
+    end
+  end
+  def extract_vars({k, v}) do k end
+
+  def eval_scope(ds, env) do
+    IO.inspect(ds)
+    Env.remove(env, extract_vars(ds))
+  end
+
+  def eval_seq([exp], env) do # Single element left.
+    eval_expr(exp, env)
+  end
+
+  def eval_seq([{:match, a1, a2} | t], env) do # Multiple elements left.
+    case eval_expr(a2, env) do
+      :error ->
+        :error1
+      {:ok, ds} ->
+        IO.inspect env # Debugging
+        env = eval_scope(a1, env)
+        IO.inspect env # Debugging
+        case eval_match(a1, ds, env) do
+          :fail ->
+            :error2
+          {:ok, env} ->
+            eval_seq(t, env)
+        end
+    end
+  end
+
+  def eval(seq) do
+    eval_seq(seq, Env.new())
+  end
 
 end

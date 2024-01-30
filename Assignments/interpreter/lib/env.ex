@@ -44,9 +44,9 @@
     list = Env.add(list, :b, "2")
     >> a a, b 2, c c
     """
-    def add([], key, value) do [{key, value }] end
+    def add([], key, value) do [{key, value}] end
     def add([h | t], key, value) do
-      {k, v} = h
+      {k, _} = h
       if k == key do # Update current.
         [{k, value} | t]
       else # Dive deeper.
@@ -66,7 +66,7 @@
     def lookup([], _) do nil end
     def lookup(map, key) do
       [h | t] = map
-      {k, v} = h
+      {k, _} = h
       if k == key do
         h
       else
@@ -87,7 +87,7 @@
     # Example:
     new_map = Env.remove(map, :a)
     """
-    def remove([], key) do nil end
+    def remove([], _) do [] end
     def remove(map, key) do
       [h | t] = map
       {k, _} = h

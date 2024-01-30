@@ -42,4 +42,8 @@ defmodule EagerTest do
     assert Eager.eval_match({:cons, {:var, :x}, {:var, :x}}, {:a, :b}, []) == :fail
   end
 
+  test "Test eval_match #10" do
+    assert Eager.eval_match({:cons, {:var, :x}, {:var, :y}}, {:a, :b}, [{:x, :a}, {:y, :b}]) == {:ok, [{:x, :a}, {:y, :b}]}
+  end
+
 end
