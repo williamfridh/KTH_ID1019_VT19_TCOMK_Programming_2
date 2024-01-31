@@ -1,3 +1,8 @@
+# TODO LIST
+# TODO: Improve documentation.
+
+# ======================================
+
 defmodule Eager do
 
   @moduledoc """
@@ -38,6 +43,78 @@ defmodule Eager do
     end
   end
 
+  def eval_expr({:case, expr, cls}, env) do
+    case eval_expr(expr, env) do
+      :error ->
+        :error
+      {:ok, exprval} ->
+        eval_cls(cls, exprval, env)
+    end
+  end
+
+  def eval_expr({:lambda, par, free, seq}, env) do
+    case Env.closure(free, env) do
+     :error ->
+        :error
+      closure ->
+        {:ok, {:closure, par, seq, closure}}
+    end
+  end
+
+  def eval_expr({:apply, expr, args}, env) do
+    IO.inspect expr
+    IO.inspect args
+    IO.inspect env
+    IO.inspect eval_expr(expr, env)
+
+    case eval_expr(expr, env) do
+      :error ->
+        :error
+      {:ok, {:closure, par, seq, closure}} ->
+        case eval_args(args, closure) do
+          :error ->
+            :error
+          {:ok, strs} ->
+            env = Env.args(par, strs, closure)
+            eval_seq(seq, env)
+        end
+    end
+  end
+
+
+
+  @doc """
+  # Evaluate Arguments
+
+  Should return a list.
+  """
+  def eval_args([h], env) do [eval_expr(h, env)] end
+
+  def eval_args([h, t], env) do
+    case eval_expr(h, env) do
+      :error ->
+        :error
+      {:ok, ev} ->
+        eval_expr(t, env)
+    end
+  end
+
+
+
+  @doc """
+  # Evaluate Clause
+  """
+  def eval_cls([], _, _) do :error end
+
+  def eval_cls([{:clause, ptr, seq} | cls], exprval, env) do
+    case eval_match(ptr, exprval, env) do
+      :fail ->
+        eval_cls(cls, exprval, env)
+      {:ok, env} ->
+        eval_seq(seq, env)
+    end
+  end
+
 
 
   @doc """
@@ -71,7 +148,13 @@ defmodule Eager do
 
 
   @doc """
-  # Sequence Evaluation
+  # Extract Variables
+
+  This function extracts all the variables from a given list,
+  pattern, or expression. It returns a list of the found variables
+  in forms of atoms.
+
+  Used by the function called eval_scope/2.
   """
   def extract_vars([]) do nil end
   def extract_vars([{k, v} | t]) do
@@ -88,13 +171,40 @@ defmodule Eager do
       end
     end
   end
-  def extract_vars({k, v}) do k end
+  def extract_vars({k, _}) do k end
+  def extract_vars({:cons, a1, a2}) do
+    case {a1, a2} do
+      {:ignore, _} ->
+        extract_vars([a2])
+      {_, :ignore} ->
+        extract_vars([a1])
+      _ ->
+        extract_vars([a1, a2])
+    end
+  end
 
+
+
+  @doc """
+  # Evaluate Scope
+
+  This function uses the function extract_vars/1 alongside with Env.remove/2
+  to remove all the variables in the given pattern or expression from the given
+  environment and returns this newely modified environment.
+
+  Used by the function called eval_seq/2.
+  """
   def eval_scope(ds, env) do
-    IO.inspect(ds)
     Env.remove(env, extract_vars(ds))
   end
 
+
+
+  @doc """
+  # Evaluate Sequence
+
+  This function evaluated a given sequence.
+  """
   def eval_seq([exp], env) do # Single element left.
     eval_expr(exp, env)
   end
@@ -102,20 +212,25 @@ defmodule Eager do
   def eval_seq([{:match, a1, a2} | t], env) do # Multiple elements left.
     case eval_expr(a2, env) do
       :error ->
-        :error1
+        :error
       {:ok, ds} ->
-        IO.inspect env # Debugging
         env = eval_scope(a1, env)
-        IO.inspect env # Debugging
         case eval_match(a1, ds, env) do
           :fail ->
-            :error2
+            :error
           {:ok, env} ->
             eval_seq(t, env)
         end
     end
   end
 
+
+
+  @doc """
+  # Evaluate
+
+  A simple caller method used for evaluations.
+  """
   def eval(seq) do
     eval_seq(seq, Env.new())
   end

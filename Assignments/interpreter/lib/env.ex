@@ -1,5 +1,5 @@
 # TODO LIST
-#
+# TODO: Clean up the messy closure/2 and add :error return.
 
 # NOTES LIST
 #
@@ -25,6 +25,54 @@
     # new_list = Env.new()
     """
     def new() do [] end
+
+
+
+    @doc """
+    # Environment Closure
+
+    Creates a new environment that only contains the gre variables
+    inside the list free.
+    """
+    def closure(free, env) do
+      closure(free, env, new())
+    end
+    def closure([h | t], env, newenv) do
+
+      if t != [] do
+
+        case lookup(env, h) do
+          {k, v} ->
+            add(closure(t, env, newenv), k, v)
+          nil ->
+            []
+        end
+
+      else
+
+        case lookup(env, h) do
+          {k, v} ->
+            add(newenv, k, v)
+          nil ->
+            []
+        end
+
+      end
+
+    end
+
+
+
+    @doc """
+    # Arguments
+    """
+    def args(par, strs, closure) do
+      IO.puts "##ARGS"
+      IO.inspect par
+      IO.inspect strs
+      IO.inspect closure
+      IO.inspect closure ++ par ++ strs
+    end
 
 
 

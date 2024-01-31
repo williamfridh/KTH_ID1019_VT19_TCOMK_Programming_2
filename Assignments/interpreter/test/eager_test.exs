@@ -46,4 +46,27 @@ defmodule EagerTest do
     assert Eager.eval_match({:cons, {:var, :x}, {:var, :y}}, {:a, :b}, [{:x, :a}, {:y, :b}]) == {:ok, [{:x, :a}, {:y, :b}]}
   end
 
+  # =================== eval_match ===================
+
+  test "Test eval_match #11" do
+    seq = [
+      {:match, {:var, :x}, {:atm,:a}},
+      {:match, {:var, :y}, {:cons, {:var, :x}, {:atm, :b}}},
+      {:match, {:cons, :ignore, {:var, :z}}, {:var, :y}},
+      {:var, :z}]
+    assert Eager.eval(seq) == {:ok, :b}
+  end
+
+  # =================== eval_seq ===================
+
+  test "Test eval_seq #12" do
+    seq = [{:match, {:var, :x}, {:atm, :a}},
+      {:case, {:var, :x},
+      [{:clause, {:atm, :b}, [{:atm, :ops}]},
+      {:clause, {:atm, :a}, [{:atm, :yes}]}
+      ]}
+      ]
+    assert Eager.eval_seq(seq, Env.new()) == {:ok, :yes}
+  end
+
 end
