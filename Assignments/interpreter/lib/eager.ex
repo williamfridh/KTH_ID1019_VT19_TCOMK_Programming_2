@@ -62,16 +62,11 @@ defmodule Eager do
   end
 
   def eval_expr({:apply, expr, args}, env) do
-    IO.inspect expr
-    IO.inspect args
-    IO.inspect env
-    IO.inspect eval_expr(expr, env)
-
     case eval_expr(expr, env) do
       :error ->
         :error
       {:ok, {:closure, par, seq, closure}} ->
-        case eval_args(args, closure) do
+        case eval_args(args, env) do
           :error ->
             :error
           {:ok, strs} ->
@@ -81,6 +76,11 @@ defmodule Eager do
     end
   end
 
+  def eval_expr({:fun, id}, _) do
+    {par, seq} = apply(Prgm, id, [])
+    {:ok, {:closure, par, seq, Env.new()}}
+  end
+
 
 
   @doc """
@@ -88,15 +88,23 @@ defmodule Eager do
 
   Should return a list.
   """
-  def eval_args([h], env) do [eval_expr(h, env)] end
+  def eval_args([h | t], env) do
+      case eval_expr(h, env) do
+        :error ->
+          :error
+        {:ok, x} ->
+          if t != [] do
+            case eval_args(t, env) do
+              :error ->
+                :error
+              {:ok, y} ->
+                {:ok, [x | y]}
+            end
+          else
+            {:ok, [x]}
+          end
+      end
 
-  def eval_args([h, t], env) do
-    case eval_expr(h, env) do
-      :error ->
-        :error
-      {:ok, ev} ->
-        eval_expr(t, env)
-    end
   end
 
 
@@ -121,7 +129,7 @@ defmodule Eager do
   # Pattern Matching
   """
   def eval_match(:ignore, _, _) do {:ok, []} end
-  def eval_match({:atm, id}, id, _) do {:ok, []} end
+  def eval_match({:atm, id}, id, env) do {:ok, env} end
 
   def eval_match({:var, id}, str, env) do
     case Env.lookup(env, id) do

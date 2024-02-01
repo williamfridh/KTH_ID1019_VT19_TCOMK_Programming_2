@@ -67,11 +67,19 @@
     # Arguments
     """
     def args(par, strs, closure) do
-      IO.puts "##ARGS"
-      IO.inspect par
-      IO.inspect strs
-      IO.inspect closure
-      IO.inspect closure ++ par ++ strs
+      #IO.puts "##ARGS"
+      #IO.inspect par
+      #IO.inspect strs
+      #IO.inspect closure
+      closure ++ args(par, strs)
+    end
+    def args([k | par], [v | strs]) do
+      {k, v}
+      if strs == [] do
+        [{k, v}]
+      else
+        [{k, v}] ++ args(par, strs)
+      end
     end
 
 
