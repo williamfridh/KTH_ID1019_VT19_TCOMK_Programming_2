@@ -57,9 +57,57 @@ defmodule OperationsOnLists do
 
 
   @doc """
-  # Filter
+  # Filter (not tail recursive)
   """
-  def fitler(lst, op) do
+  def filterr([ ], _) do [ ] end
+  def filterr([h | t], op) do
+    if op.(h) do
+      [h | filterr(t, op)]
+    else
+      filterr(t, op)
+    end
+  end
+
+
+
+  @doc """
+  # Filter (tail recursive)
+  """
+  def filterl([ ], _, _) do [ ] end
+  def filterl([ x ], lst2, op) do
+    if op.(x) do
+      [ x | lst2 ]
+    else
+      lst2
+    end
+  end
+  def filterl([h1 | t1], lst2, op) do
+    if op.(h1) do
+      filterl(t1, [h1 | lst2], op)
+    else
+      filterl(t1, lst2, op)
+    end
+  end
+
+
+
+  @doc """
+  # Filter (tail recursive) flipped
+  """
+  def filterlf([ ], _, _) do [ ] end
+  def filterlf([ x ], lst2, op) do
+    if op.(x) do
+      lst2 ++ [ x ]
+    else
+      lst2
+    end
+  end
+  def filterlf([h1 | t1], lst2, op) do
+    if op.(h1) do
+      filterlf(t1, lst2 ++ [ h1 ], op)
+    else
+      filterlf(t1, lst2, op)
+    end
   end
 
 
@@ -169,6 +217,28 @@ defmodule OperationsOnLists do
   def reducel([ x ], i, op) do op.(x, i) end
   def reducel([h | t], i, op) do
     reducel(t, op.(h, i), op)
+  end
+
+
+
+  # ======================= EXTRA =======================
+
+  @doc """
+  # Foo &
+
+  Takes a list of integers and returns the sum of the square of all values less than n.
+  """
+  def foo(lst, n) do
+    less_than_n = filterlf(lst, [], fn(x) -> x < n end)
+    squares = map(less_than_n, fn(x) -> x * x end)
+    reducel(squares, 0, fn(x, y) -> x + y end)
+  end
+
+  def bar(lst, n) do
+    lst |>
+      filterlf([], fn(x) -> x < n end) |>
+      map(fn(x) -> x * x end) |>
+      reducel(0, fn(x, y) -> x + y end)
   end
 
 end
