@@ -92,6 +92,13 @@ defmodule Springs do
 
 
 
+  def evalList([]) do 0 end
+  def evalList([h | t]) do
+    eval(h) + evalList(t)
+  end
+
+
+
   @doc """
   Evaluate entry.
 
@@ -106,18 +113,130 @@ defmodule Springs do
 
   #?..??...?##. 1,3
   """
-  def eval({sym, num}) do
-    [sh | th] = sym               # Split symbol list into head and tail.
-    [nh | nt] = num               # Split number list into head and tail.
+  #def eval(entry) do eval(entry, 0) end
+  def eval(entry) do eval(entry, false) end
+  def eval({[], []}, _) do
+    #IO.puts "1111111111111111111111111111111111111111111111111"
+    1
+  end
+  def eval({[], [0]}, _) do
+    #IO.puts "1111111111111111111111111111111111111111111111111"
+    1
+  end
 
-    if sh == :unk do
-      guessBAD = eval({th, nt})
-      guessOK = eval({th, num})
+  def eval({[], _}, _) do
+    #IO.puts 0
+    0
+  end
+
+  def eval({[:ok | _], _}, true) do
+    #IO.puts "---"
+    #IO.puts 0
+    0
+  end
+
+  def eval({_, [-1 | nt]}, _) do
+    #IO.puts 0
+    0
+  end
+
+  def eval({[sh | st] = sym, []}, _) do
+
+    #IO.inspect sym
+    #IO.inspect []
+
+    case sh do
+      :bad -> 0
+      _ -> eval({st, []}, false)
+    end
+  end
+
+  def eval({[:ok | st] = sym, num}, _) do
+
+    #IO.inspect sym
+    #IO.inspect(num, limit: :infinity, charlists: :as_strings)
+
+
+    num = removeZeroHead(num)
+    eval({st, num}, false)
+  end
+
+  def eval({[:bad | st] = sym, [nh | nt] = num}, _) do
+
+    #IO.inspect sym
+    #IO.inspect(num, limit: :infinity, charlists: :as_strings)
+
+
+
+    num_dec = [nh - 1 | nt]
+    #num = removeZeroHead(num)
+    if nh - 1 == 0 do
+      eval({st, num_dec}, false)
     else
-      continue = eval({th, num})
+      eval({st, num_dec}, true)
     end
 
   end
+
+  def eval({[:unk | st] = sym, [0 | _] = num}, _) do
+
+    #IO.inspect sym
+    #IO.inspect(num, limit: :infinity, charlists: :as_strings)
+
+
+
+    num = removeZeroHead(num)
+    eval({st, num}, false)
+  end
+
+
+  def eval({[:unk | st] = sym, [nh | nt] = num}, true) do
+
+    #IO.inspect sym
+    #IO.inspect(num, limit: :infinity, charlists: :as_strings)
+
+
+      num_dec = [nh - 1 | nt]
+      if nh - 1 == 0 do
+        eval({st, num_dec}, false)
+      else
+        eval({st, num_dec}, true)
+      end
+
+
+
+
+
+  end
+
+
+  def eval({[:unk | st] = sym, [nh | nt] = num}, false) do
+
+    #IO.inspect sym
+    #IO.inspect(num, limit: :infinity, charlists: :as_strings)
+
+
+      num_dec = [nh - 1 | nt]
+      if nh - 1 == 0 do
+        eval({st, num_dec}, false) + eval({st, num}, false)
+      else
+        eval({st, num_dec}, true) + eval({st, num}, false)
+      end
+
+
+
+
+
+  end
+
+
+
+  def removeZeroHead([0 | tl]) do tl end
+  def removeZeroHead(lst) do lst end
+
+
+
+
 
 
 
