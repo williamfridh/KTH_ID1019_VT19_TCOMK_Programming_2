@@ -11,10 +11,10 @@ defmodule Springs do
   Reads entires from a document and converts each row into
   a entry by calling upon rowToEntry/1.
   """
-  def docToList(file_path) do
+  def docToList(file_path, extended) do
     case File.read(file_path) do                    # Attempt to read from file.
       {:ok, content} ->                             # Content found.
-        rowsToEntires(content)                      # Pass content for convertion.
+        rowsToEntires(content, extended)            # Pass content for convertion.
       {:error, reason} ->                           # Error accured.
         IO.puts("Error reading file: #{reason}")
     end
@@ -28,13 +28,13 @@ defmodule Springs do
   This function jsut passes down each row to the function
   called rowToEntry/1.
   """
-  def rowsToEntires(content) do
+  def rowsToEntires(content, extended) do
     rows = String.split(content, "\n")
-    rowsToEntires(rows, [])
+    rowsToEntires(rows, [], extended)
   end
-  def rowsToEntires([], lst) do lst end
-  def rowsToEntires([h | t], lst) do
-    [rowToEntry(h) | rowsToEntires(t, lst)]
+  def rowsToEntires([], lst, _) do lst end
+  def rowsToEntires([h | t], lst, extended) do
+    [rowToEntry(h, extended) | rowsToEntires(t, lst, extended)]
   end
 
 
@@ -45,11 +45,11 @@ defmodule Springs do
   Converts a given input row into a proper entry of the
   format {[:bad, :ok, :bad, :ok, :bad, :bad, :bad], [1,1,3]}.
   """
-  def rowToEntry(row) do
-    [sym, num] = String.split(row, " ")   # Split row into symbols and numbers.
-    sym = symbolsToList(sym)              # Turn symbols into an list of atoms.
-    num = numbersToList(num)              # Turn numebrs into an list ofr integers.
-    {sym, num}                            # Return tuple of two lists.
+  def rowToEntry(row, extended) do
+    [sym, num] = String.split(row, " ")                 # Split row into symbols and numbers.
+    sym = symbolsToList(sym)                            # Turn symbols into an list of atoms.
+    num = numbersToList(num)                            # Turn numebrs into an list ofr integers.
+    {sym, num}                                          # Return row multiplied in length.
   end
 
 
@@ -92,6 +92,12 @@ defmodule Springs do
 
 
 
+  @doc """
+  Evalute lite of entries.
+
+  This function evalutes each entry in the provided list
+  and sums up all the results.
+  """
   def evalList([]) do 0 end
   def evalList([h | t]) do
     eval(h) + evalList(t)
@@ -104,47 +110,16 @@ defmodule Springs do
 
   Evalutes an entry and returns the amount of possible solution.
   The goal is to replace each :unk with either :ok or :bad.
-
-  # Example
-  Start:
-  .??..??...?##. 1,1,3
-
-  ??..??...?##. 1,1,3
-
-  #?..??...?##. 1,3
   """
-  #def eval(entry) do eval(entry, 0) end
   def eval(entry) do eval(entry, false) end
-  def eval({[], []}, _) do
-    #IO.puts "1111111111111111111111111111111111111111111111111"
-    1
-  end
-  def eval({[], [0]}, _) do
-    #IO.puts "1111111111111111111111111111111111111111111111111"
-    1
-  end
+  def eval({[], []}, _) do 1 end
+  def eval({[], [0]}, _) do 1 end
 
-  def eval({[], _}, _) do
-    #IO.puts 0
-    0
-  end
-
-  def eval({[:ok | _], _}, true) do
-    #IO.puts "---"
-    #IO.puts 0
-    0
-  end
-
-  def eval({_, [-1 | nt]}, _) do
-    #IO.puts 0
-    0
-  end
+  def eval({[], _}, _) do 0 end
+  def eval({[:ok | _], _}, true) do 0 end
+  def eval({_, [-1 | nt]}, _) do 0 end
 
   def eval({[sh | st] = sym, []}, _) do
-
-    #IO.inspect sym
-    #IO.inspect []
-
     case sh do
       :bad -> 0
       _ -> eval({st, []}, false)
@@ -152,91 +127,52 @@ defmodule Springs do
   end
 
   def eval({[:ok | st] = sym, num}, _) do
-
-    #IO.inspect sym
-    #IO.inspect(num, limit: :infinity, charlists: :as_strings)
-
-
     num = removeZeroHead(num)
     eval({st, num}, false)
   end
 
   def eval({[:bad | st] = sym, [nh | nt] = num}, _) do
-
-    #IO.inspect sym
-    #IO.inspect(num, limit: :infinity, charlists: :as_strings)
-
-
-
     num_dec = [nh - 1 | nt]
-    #num = removeZeroHead(num)
     if nh - 1 == 0 do
       eval({st, num_dec}, false)
     else
       eval({st, num_dec}, true)
     end
-
   end
 
   def eval({[:unk | st] = sym, [0 | _] = num}, _) do
-
-    #IO.inspect sym
-    #IO.inspect(num, limit: :infinity, charlists: :as_strings)
-
-
-
     num = removeZeroHead(num)
     eval({st, num}, false)
   end
 
-
   def eval({[:unk | st] = sym, [nh | nt] = num}, true) do
-
-    #IO.inspect sym
-    #IO.inspect(num, limit: :infinity, charlists: :as_strings)
-
-
       num_dec = [nh - 1 | nt]
       if nh - 1 == 0 do
         eval({st, num_dec}, false)
       else
         eval({st, num_dec}, true)
       end
-
-
-
-
-
   end
 
-
   def eval({[:unk | st] = sym, [nh | nt] = num}, false) do
-
-    #IO.inspect sym
-    #IO.inspect(num, limit: :infinity, charlists: :as_strings)
-
-
       num_dec = [nh - 1 | nt]
       if nh - 1 == 0 do
         eval({st, num_dec}, false) + eval({st, num}, false)
       else
         eval({st, num_dec}, true) + eval({st, num}, false)
       end
-
-
-
-
-
   end
 
 
 
+  @doc """
+  Remove Zero Head.
+
+  Removes the head of a list if the head is zero.
+  A simple helper function used by eval/2.
+  """
   def removeZeroHead([0 | tl]) do tl end
   def removeZeroHead(lst) do lst end
-
-
-
-
 
 
 
@@ -244,6 +180,7 @@ defmodule Springs do
   Check entry.
 
   Returns a boolean telling if the entry is valid.
+  Note that this function is only for testing.
   """
   def check({sym, num}) do
     if check(sym, [], 0) == num do
