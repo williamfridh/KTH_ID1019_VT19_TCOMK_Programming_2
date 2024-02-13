@@ -11,10 +11,10 @@ defmodule Springs do
   Reads entires from a document and converts each row into
   a entry by calling upon rowToEntry/1.
   """
-  def docToList(file_path, extended) do
+  def docToList(file_path, extend) do
     case File.read(file_path) do                    # Attempt to read from file.
       {:ok, content} ->                             # Content found.
-        rowsToEntires(content, extended)            # Pass content for convertion.
+        rowsToEntires(content, extend)            # Pass content for convertion.
       {:error, reason} ->                           # Error accured.
         IO.puts("Error reading file: #{reason}")
     end
@@ -28,13 +28,13 @@ defmodule Springs do
   This function jsut passes down each row to the function
   called rowToEntry/1.
   """
-  def rowsToEntires(content, extended) do
+  def rowsToEntires(content, extend) do
     rows = String.split(content, "\n")
-    rowsToEntires(rows, [], extended)
+    rowsToEntires(rows, [], extend)
   end
   def rowsToEntires([], lst, _) do lst end
-  def rowsToEntires([h | t], lst, extended) do
-    [rowToEntry(h, extended) | rowsToEntires(t, lst, extended)]
+  def rowsToEntires([h | t], lst, extend) do
+    [rowToEntry(h, extend) | rowsToEntires(t, lst, extend)]
   end
 
 
@@ -45,11 +45,32 @@ defmodule Springs do
   Converts a given input row into a proper entry of the
   format {[:bad, :ok, :bad, :ok, :bad, :bad, :bad], [1,1,3]}.
   """
-  def rowToEntry(row, extended) do
+  def rowToEntry(row, extend) do
     [sym, num] = String.split(row, " ")                 # Split row into symbols and numbers.
     sym = symbolsToList(sym)                            # Turn symbols into an list of atoms.
     num = numbersToList(num)                            # Turn numebrs into an list ofr integers.
-    {sym, num}                                          # Return row multiplied in length.
+    extendEntry({sym, num}, extend)                            # Return row multiplied in length.
+  end
+
+
+
+  @doc """
+  Extend entry.
+
+  Extends a entry by multiplying each side a given amount of times.
+  """
+  def extendEntry({sym, num}, extend) do
+    extendEntry({sym, num}, {sym, num}, extend)
+  end
+
+  #def extendEntry(_, 0) do [] end
+  #def extendEntry(lst, 1) do lst end
+  def extendEntry({sym, num}, {symNew, numNew}, extend) do
+    if extend > 1 do
+      extendEntry({sym, num}, {symNew ++ [:unk] ++ sym, numNew ++ num}, extend - 1)
+    else
+      {symNew, numNew}
+    end
   end
 
 
@@ -100,6 +121,9 @@ defmodule Springs do
   """
   def evalList([]) do 0 end
   def evalList([h | t]) do
+    IO.puts "================================"
+    IO.inspect h
+    IO.puts eval(h)
     eval(h) + evalList(t)
   end
 
@@ -112,6 +136,7 @@ defmodule Springs do
   The goal is to replace each :unk with either :ok or :bad.
   """
   def eval(entry) do eval(entry, false) end
+
   def eval({[], []}, _) do 1 end
   def eval({[], [0]}, _) do 1 end
 
@@ -126,32 +151,12 @@ defmodule Springs do
     end
   end
 
-  def eval({[:ok | st] = sym, num}, _) do
+  def eval({[sh | st] = sym, [nh | nt] = num}, _) when
+                                                        sh == :ok or
+                                                        sh == :unk and nh == 0
+                                                        do
     num = removeZeroHead(num)
     eval({st, num}, false)
-  end
-
-  def eval({[:bad | st] = sym, [nh | nt] = num}, _) do
-    num_dec = [nh - 1 | nt]
-    if nh - 1 == 0 do
-      eval({st, num_dec}, false)
-    else
-      eval({st, num_dec}, true)
-    end
-  end
-
-  def eval({[:unk | st] = sym, [0 | _] = num}, _) do
-    num = removeZeroHead(num)
-    eval({st, num}, false)
-  end
-
-  def eval({[:unk | st] = sym, [nh | nt] = num}, true) do
-      num_dec = [nh - 1 | nt]
-      if nh - 1 == 0 do
-        eval({st, num_dec}, false)
-      else
-        eval({st, num_dec}, true)
-      end
   end
 
   def eval({[:unk | st] = sym, [nh | nt] = num}, false) do
@@ -161,6 +166,136 @@ defmodule Springs do
       else
         eval({st, num_dec}, true) + eval({st, num}, false)
       end
+  end
+
+  def eval({[sh | st] = sym, [nh | nt] = num}, _) do
+      num_dec = [nh - 1 | nt]
+      if nh - 1 == 0 do
+        eval({st, num_dec}, false)
+      else
+        eval({st, num_dec}, true)
+      end
+  end
+
+
+
+  @doc """
+  Evalute lite of entries.
+
+  This function evalutes each entry in the provided list
+  and sums up all the results.
+  """
+  def evalListMem(lst) do
+    {r, m} = evalListMem(lst, %{})
+    r
+  end
+  def evalListMem([], mem) do {0, mem} end
+  def evalListMem([h | t], mem) do
+    {r1, m1} = evalMemCheck(h, mem)
+    IO.puts "================================"
+    IO.inspect h
+    IO.puts r1
+    {r2, m2} = evalListMem(t, m1)
+    {r1 + r2, m2}
+  end
+
+
+
+
+
+
+
+
+
+
+  def evalMemTest(entry, mem) do
+    {r, m } = evalMemCheck(entry, false, mem)
+    r
+  end
+
+
+  def evalMem(entry, mem) do evalMemCheck(entry, false, mem) end
+
+  def evalMem({[], []}, _, mem) do
+    {1, mem}
+  end
+  def evalMem({[], [0]}, _, mem) do
+    {1, mem}
+  end
+
+  def evalMem({[], _}, _, mem) do {0, mem} end
+  def evalMem({[:ok | _], _}, true, mem) do {0, mem} end
+  def evalMem({_, [-1 | nt]}, _, mem) do {0, mem} end
+
+  def evalMem({[sh | st] = sym, []}, _, mem) do
+    case sh do
+      :bad -> {0, mem}
+      _ -> evalMemCheck({st, []}, false, mem)
+    end
+  end
+
+  def evalMem({[sh | st] = sym, [nh | nt] = num}, _, mem) when
+                                                        sh == :ok or
+                                                        sh == :unk and nh == 0
+                                                        do
+    num = removeZeroHead(num)
+    evalMemCheck({st, num}, false, mem)
+  end
+
+  def evalMem({[:unk | st] = sym, [nh | nt] = num}, false, mem) do
+      num_dec = [nh - 1 | nt]
+      if nh - 1 == 0 do
+        {r1, m1} = evalMemCheck({st, num_dec}, false, mem)
+        {r2, m2} = evalMemCheck({st, num}, false, m1)
+        {r1 + r2, m2}
+      else
+        {r1, m1} = evalMemCheck({st, num_dec}, true, mem)
+        {r2, m2} = evalMemCheck({st, num}, false, m1)
+        {r1 + r2, m2}
+      end
+  end
+
+  def evalMem({[sh | st] = sym, [nh | nt] = num}, _, mem) do
+      num_dec = [nh - 1 | nt]
+      if nh - 1 == 0 do
+        evalMemCheck({st, num_dec}, false, mem)
+      else
+        evalMemCheck({st, num_dec}, true, mem)
+      end
+  end
+
+
+
+
+
+
+
+
+
+
+  def evalMemCheck({sym, num}, mem) do evalMemCheck({sym, num}, false, mem) end
+  def evalMemCheck({sym, num}, forceBad, mem) do
+
+    #IO.puts "MEMORY:"
+    #IO.inspect mem
+
+    memRes = Map.get(mem, {sym, num})
+    if memRes == nil do
+
+      #IO.puts ""
+      #IO.puts "NO MEMORY INPUT FOUND"
+
+      {res, mem} = evalMem({sym, num}, forceBad, mem)
+
+      #IO.puts "ADD TO MEMORY:"
+      #IO.inspect {sym, num}
+      #IO.inspect res
+
+      {res, Map.put(mem, {sym, num}, res)}
+
+    else
+      {memRes, mem}
+    end
   end
 
 
