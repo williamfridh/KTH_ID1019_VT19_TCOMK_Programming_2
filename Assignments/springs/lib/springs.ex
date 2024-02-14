@@ -14,7 +14,7 @@ defmodule Springs do
   def docToList(file_path, extend) do
     case File.read(file_path) do                    # Attempt to read from file.
       {:ok, content} ->                             # Content found.
-        rowsToEntires(content, extend)            # Pass content for convertion.
+        rowsToEntires(content, extend)              # Pass content for convertion.
       {:error, reason} ->                           # Error accured.
         IO.puts("Error reading file: #{reason}")
     end
@@ -49,7 +49,7 @@ defmodule Springs do
     [sym, num] = String.split(row, " ")                 # Split row into symbols and numbers.
     sym = symbolsToList(sym)                            # Turn symbols into an list of atoms.
     num = numbersToList(num)                            # Turn numebrs into an list ofr integers.
-    extendEntry({sym, num}, extend)                            # Return row multiplied in length.
+    extendEntry({sym, num}, extend)                     # Return row multiplied in length.
   end
 
 
@@ -121,9 +121,6 @@ defmodule Springs do
   """
   def evalList([]) do 0 end
   def evalList([h | t]) do
-    #IO.puts "================================"
-    #IO.inspect h
-    #IO.puts eval(h)
     eval(h) + evalList(t)
   end
 
@@ -192,36 +189,36 @@ defmodule Springs do
   def evalListMem([], mem) do {0, mem} end
   def evalListMem([h | t], mem) do
     {r1, m1} = evalMemCheck(h, mem)
-    #IO.puts "================================"
-    #IO.inspect h
-    #IO.puts r1
     {r2, m2} = evalListMem(t, m1)
     {r1 + r2, m2}
   end
 
 
 
+  @doc """
+  Evaluate With Memory Test.
 
+  This function is used for running someof the tests
+  found in data/springs_test.exs.
 
-
-
-
-
-
+  See evalMem/2 for more information.
+  """
   def evalMemTest(entry, mem) do
     {r, m } = evalMemCheck(entry, false, mem)
     r
   end
 
 
+
+  @doc """
+  Evaluate With Memory.
+
+  Evaluates a given entry by using memory to speed up the process.
+  """
   def evalMem(entry, mem) do evalMemCheck(entry, false, mem) end
 
-  def evalMem({[], []}, _, mem) do
-    {1, mem}
-  end
-  def evalMem({[], [0]}, _, mem) do
-    {1, mem}
-  end
+  def evalMem({[], []}, _, mem) do {1, mem} end
+  def evalMem({[], [0]}, _, mem) do {1, mem} end
 
   def evalMem({[], _}, _, mem) do {0, mem} end
   def evalMem({[:ok | _], _}, true, mem) do {0, mem} end
@@ -266,37 +263,20 @@ defmodule Springs do
 
 
 
+  @doc """
+  Evaluate Memory Check.
 
-
-
-
-
-
-
+  This function is a form of wrapper function for the evalMem/2.
+  It's job is to first check if ther is a result stored in the
+  memory already.
+  """
   def evalMemCheck({sym, num}, mem) do evalMemCheck({sym, num}, false, mem) end
   def evalMemCheck({sym, num}, forceBad, mem) do
-
-    #IO.puts "MEMORY:"
-    #IO.inspect mem
-
     memRes = Map.get(mem, {sym, num, forceBad})
     if memRes == nil do
-
-      #IO.puts ""
-      #IO.puts "NO MEMORY INPUT FOUND"
-
       {res, mem} = evalMem({sym, num}, forceBad, mem)
-
-      #IO.puts "ADD TO MEMORY:"
-      #IO.inspect {sym, num}
-      #IO.inspect res
-
       {res, Map.put(mem, {sym, num, forceBad}, res)}
-
     else
-      #IO.puts "FOUND IN MEMORY"
-      #IO.inspect {sym, num}
-      #IO.puts memRes
       {memRes, mem}
     end
   end
