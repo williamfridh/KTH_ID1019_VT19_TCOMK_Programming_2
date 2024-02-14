@@ -121,9 +121,9 @@ defmodule Springs do
   """
   def evalList([]) do 0 end
   def evalList([h | t]) do
-    IO.puts "================================"
-    IO.inspect h
-    IO.puts eval(h)
+    #IO.puts "================================"
+    #IO.inspect h
+    #IO.puts eval(h)
     eval(h) + evalList(t)
   end
 
@@ -192,9 +192,9 @@ defmodule Springs do
   def evalListMem([], mem) do {0, mem} end
   def evalListMem([h | t], mem) do
     {r1, m1} = evalMemCheck(h, mem)
-    IO.puts "================================"
-    IO.inspect h
-    IO.puts r1
+    #IO.puts "================================"
+    #IO.inspect h
+    #IO.puts r1
     {r2, m2} = evalListMem(t, m1)
     {r1 + r2, m2}
   end
@@ -279,7 +279,7 @@ defmodule Springs do
     #IO.puts "MEMORY:"
     #IO.inspect mem
 
-    memRes = Map.get(mem, {sym, num})
+    memRes = Map.get(mem, {sym, num, forceBad})
     if memRes == nil do
 
       #IO.puts ""
@@ -291,9 +291,12 @@ defmodule Springs do
       #IO.inspect {sym, num}
       #IO.inspect res
 
-      {res, Map.put(mem, {sym, num}, res)}
+      {res, Map.put(mem, {sym, num, forceBad}, res)}
 
     else
+      #IO.puts "FOUND IN MEMORY"
+      #IO.inspect {sym, num}
+      #IO.puts memRes
       {memRes, mem}
     end
   end
