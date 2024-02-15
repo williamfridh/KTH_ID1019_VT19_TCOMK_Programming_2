@@ -62,9 +62,6 @@ defmodule Springs do
   def extendEntry({sym, num}, extend) do
     extendEntry({sym, num}, {sym, num}, extend)
   end
-
-  #def extendEntry(_, 0) do [] end
-  #def extendEntry(lst, 1) do lst end
   def extendEntry({sym, num}, {symNew, numNew}, extend) do
     if extend > 1 do
       extendEntry({sym, num}, {symNew ++ [:unk] ++ sym, numNew ++ num}, extend - 1)
@@ -148,10 +145,8 @@ defmodule Springs do
     end
   end
 
-  def eval({[sh | st] = sym, [nh | nt] = num}, _) when
-                                                        sh == :ok or
-                                                        sh == :unk and nh == 0
-                                                        do
+  def eval({[sh | st] = sym, [nh | nt] = num}, _)
+  when sh == :ok or sh == :unk and nh == 0 do
     num = removeZeroHead(num)
     eval({st, num}, false)
   end
