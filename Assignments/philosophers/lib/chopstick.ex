@@ -8,7 +8,7 @@ defmodule Chopstick do
   Start.
   """
   def start() do
-    stick = spawn_link(fn -> available() end)
+    spawn_link(fn -> available() end)
   end
 
 
@@ -18,8 +18,8 @@ defmodule Chopstick do
   """
   def available() do
     receive do
-      {:request, from} ->
-        IO.puts("Stick requested by #{from}")
+      :request ->
+        IO.puts("Stick requested")
         gone()
       :return ->
         IO.puts("Stick already returned")
@@ -35,8 +35,8 @@ defmodule Chopstick do
   """
   def gone() do
     receive do
-      {:request, from} ->
-        IO.puts("Stick requested by #{from}, but it's already in use")
+      :request ->
+        IO.puts("Stick requested, but it's already in use")
         gone()
       :return ->
         IO.puts("Stick returned")
@@ -50,8 +50,13 @@ defmodule Chopstick do
   @doc """
   Request.
   """
-  def request(stick, from) do
-    send(stick, {:request, from})
+  def request(stick) do
+    x = send(stick, :request)
+    IO.inspect
+    #receive do
+    #  {:request, from} ->
+
+    #end
   end
 
 
@@ -59,7 +64,8 @@ defmodule Chopstick do
   @doc """
   Return.
   """
-  def return(stick) do
+  def return(stick, name) do
+    IO.puts("Chopstick returned by #{name}")
     send(stick, :return)
   end
 
@@ -69,6 +75,7 @@ defmodule Chopstick do
   Remove.
   """
   def remove(stick) do
+    IO.puts("Chopstick removed")
     Process.exit(stick, :shutdown)
   end
 
