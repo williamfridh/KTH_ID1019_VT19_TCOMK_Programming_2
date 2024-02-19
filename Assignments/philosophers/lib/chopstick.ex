@@ -18,11 +18,11 @@ defmodule Chopstick do
   """
   def available() do
     receive do
-      :request ->
-        IO.puts("Stick requested")
+      {:request, caller} ->
+        send(caller, :ok)
         gone()
-      :return ->
-        IO.puts("Stick already returned")
+      {:return, caller} ->
+        send(caller, :bad)
         available()
       :quit -> :ok
     end
@@ -35,11 +35,11 @@ defmodule Chopstick do
   """
   def gone() do
     receive do
-      :request ->
-        IO.puts("Stick requested, but it's already in use")
+      {:request, caller} ->
+        send(caller, :bad)
         gone()
-      :return ->
-        IO.puts("Stick returned")
+      {:return, caller} ->
+        send(caller, :ok)
         available()
       :quit -> :ok
     end
@@ -50,13 +50,19 @@ defmodule Chopstick do
   @doc """
   Request.
   """
-  def request(stick) do
-    x = send(stick, :request)
-    IO.inspect
-    #receive do
-    #  {:request, from} ->
-
-    #end
+  def request(stick, name, timeout) do
+    send(stick, {:request, self()})
+    receive do
+      :ok ->
+        #IO.puts("#{name} -- Got a chopstick")
+        :ok
+      :bad ->
+        #IO.puts("#{name} -- Didn't get a chopstick")
+        :bad
+    after timeout ->
+      IO.puts("#{name} -- Don't want to wait longer for a chopstick")
+      :timeout
+    end
   end
 
 
@@ -65,8 +71,15 @@ defmodule Chopstick do
   Return.
   """
   def return(stick, name) do
-    IO.puts("Chopstick returned by #{name}")
-    send(stick, :return)
+    send(stick, {:return, self()})
+    receive do
+      :ok ->
+        #IO.puts("#{name} -- Returned a chopstick")
+        :ok
+      :bad ->
+        #IO.puts("#{name} -- Didn't have a chopstick to return")
+        :bad
+    end
   end
 
 

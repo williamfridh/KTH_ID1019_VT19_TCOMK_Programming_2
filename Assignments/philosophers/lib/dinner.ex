@@ -24,11 +24,11 @@ defmodule Dinner do
     c4 = Chopstick.start()
     c5 = Chopstick.start()
     ctrl = self()
-    Philosopher.start(5, c1, c2, :arendt, ctrl)
-    Philosopher.start(5, c2, c3, :hypatia, ctrl)
-    Philosopher.start(5, c3, c4, :simone, ctrl)
-    Philosopher.start(5, c4, c5, :elisabeth, ctrl)
-    Philosopher.start(5, c5, c1, :ayn, ctrl)
+    Philosopher.start(5, c1, c2, :arendt, ctrl, 20)
+    Philosopher.start(5, c2, c3, :hypatia, ctrl, 20)
+    Philosopher.start(5, c3, c4, :simone, ctrl, 20)
+    Philosopher.start(5, c4, c5, :elisabeth, ctrl, 20)
+    Philosopher.start(5, c5, c1, :ayn, ctrl, 20)
     wait(5, [c1, c2, c3, c4, c5])
   end
 
