@@ -49,16 +49,14 @@ defmodule Chopstick do
 
   @doc """
   Request.
+
+  Note: This function does not need to listen for :bad.
   """
   def request(stick, name, timeout) do
     send(stick, {:request, self()})
     receive do
       :ok ->
-        #IO.puts("#{name} -- Got a chopstick")
         :ok
-      #:bad ->
-        #IO.puts("#{name} -- Didn't get a chopstick")
-      #  :bad
     after timeout ->
       #IO.puts("#{name} -- Don't want to wait longer for a chopstick")
       :timeout
@@ -115,9 +113,7 @@ defmodule Chopstick do
     task2 = Task.async(fn -> return(c2, name) end)
     r1 = Task.await(task1)
     r2 = Task.await(task2)
-    case {r1, r2} do
-      {:ok, :ok} -> :ok
-    end
+    :ok
   end
 
 
