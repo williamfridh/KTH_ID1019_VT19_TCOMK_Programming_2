@@ -56,12 +56,35 @@ defmodule Chopstick do
       :ok ->
         #IO.puts("#{name} -- Got a chopstick")
         :ok
-      :bad ->
+      #:bad ->
         #IO.puts("#{name} -- Didn't get a chopstick")
-        :bad
+      #  :bad
     after timeout ->
-      IO.puts("#{name} -- Don't want to wait longer for a chopstick")
+      #IO.puts("#{name} -- Don't want to wait longer for a chopstick")
       :timeout
+    end
+  end
+
+
+
+  @doc """
+  Asynchronous Request.
+  """
+  def async_request(c1, c2, name, timeout) do
+    task1 = Task.async(fn -> request(c1, name, timeout) end)
+    task2 = Task.async(fn -> request(c2, name, timeout) end)
+    r1 = Task.await(task1)
+    r2 = Task.await(task2)
+    case {r1, r2} do
+      {_, :timeout} ->
+        IO.puts("#{name} -- Don't want to wait longer for a chopsticks")
+        return(c2, name)
+        :timeout
+      {:timeout, _} ->
+        IO.puts("#{name} -- Don't want to wait longer for a chopsticks")
+        return(c1, name)
+        :timeout
+      {:ok, :ok} -> :ok
     end
   end
 
@@ -74,11 +97,26 @@ defmodule Chopstick do
     send(stick, {:return, self()})
     receive do
       :ok ->
-        #IO.puts("#{name} -- Returned a chopstick")
+        IO.puts("#{name} -- Returned a chopstick")
         :ok
       :bad ->
-        #IO.puts("#{name} -- Didn't have a chopstick to return")
+        IO.puts("#{name} -- Didn't have a chopstick to return")
         :bad
+    end
+  end
+
+
+
+  @doc """
+  Asynchronous Return.
+  """
+  def async_return(c1, c2, name) do
+    task1 = Task.async(fn -> return(c1, name) end)
+    task2 = Task.async(fn -> return(c2, name) end)
+    r1 = Task.await(task1)
+    r2 = Task.await(task2)
+    case {r1, r2} do
+      {:ok, :ok} -> :ok
     end
   end
 

@@ -11,13 +11,17 @@ defmodule Dinner do
 
   Create a thread that runs init/0.
   """
-  def start(), do: spawn(fn -> init() end)
+  def start do
+    IO.puts("Starting benchmark...")
+    t1 = :os.system_time(:millisecond)
+    spawn(fn -> init(t1) end)
+  end
 
 
 
   @doc """
   """
-  def init() do
+  def init(t1) do
     c1 = Chopstick.start()
     c2 = Chopstick.start()
     c3 = Chopstick.start()
@@ -29,23 +33,29 @@ defmodule Dinner do
     Philosopher.start(5, c3, c4, :simone, ctrl, 20)
     Philosopher.start(5, c4, c5, :elisabeth, ctrl, 20)
     Philosopher.start(5, c5, c1, :ayn, ctrl, 20)
-    wait(5, [c1, c2, c3, c4, c5])
+    wait(5, [c1, c2, c3, c4, c5], t1)
   end
 
   # We’re starting all processes under a controlling process that will keep
   # track of all the philosophers and also make sure that the chopstick processes
   # are terminated when we’re done.
 
-  def wait(0, chopsticks) do
+  def wait(0, chopsticks, t1) do
+
+    t2 = :os.system_time(:millisecond)
+    t = t2 - t1
+    IO.puts("#{t} milliseconds")
+
     Enum.each(chopsticks, fn(c) -> Chopstick.remove(c) end)
+
   end
 
 
 
-  def wait(n, chopsticks) do
+  def wait(n, chopsticks, t1) do
     receive do
       :done ->
-        wait(n - 1, chopsticks)
+        wait(n - 1, chopsticks, t1)
       :abort ->
         Process.exit(self(), :kill)
       end
