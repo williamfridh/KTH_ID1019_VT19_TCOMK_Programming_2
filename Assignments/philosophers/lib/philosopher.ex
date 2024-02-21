@@ -216,6 +216,7 @@ defmodule Philosopher do
   # The waiter makes a cetralized csolution. A bottleneck that can crash everything.
   # Instead, find a decentrilised solution.
   # The chopsticks are the decentrilization?
+  # We use a exponential backloff time. Like in CSMA/CD.
 
   @doc """
   Waiting.
