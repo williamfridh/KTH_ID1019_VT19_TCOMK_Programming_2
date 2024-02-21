@@ -163,11 +163,11 @@ defmodule Philosopher do
   """
 
 
-  @dreaming    100
+  @dreaming    1
   @eating      0
   @chopsticks  0
-  @max_waiting 100
-  @additional_waiting 400
+  @max_waiting 1
+  #@additional_waiting 20
 
 
   @doc """
@@ -213,7 +213,9 @@ defmodule Philosopher do
     waiting(hunger, right, left, name, ctrl, life, 0, false)      # Go to hungry state.
   end
 
-
+  # The waiter makes a cetralized csolution. A bottleneck that can crash everything.
+  # Instead, find a decentrilised solution.
+  # The chopsticks are the decentrilization?
 
   @doc """
   Waiting.
@@ -239,19 +241,21 @@ defmodule Philosopher do
     #      waiting(hunger, right, left, name, ctrl, life - 1)
     #    end
     #end
-    sleep(wait)
+    #sleep(wait)
     #if (:rand.uniform(4) != 1) do
     #  IO.puts("#{name} -- Missed his/her turn")
     #  waiting(hunger, right, left, name, ctrl, life, wait, true)
     #else
-    case Chopstick.async_request(left, right, name, @max_waiting + wait) do
+    case Chopstick.async_request(left, right, name, @max_waiting) do
       :ok ->
         eating(hunger, right, left, name, ctrl, life)
       :timeout ->
         if (life - 1 == 0) do
           dead(0, right, left, name, ctrl, 0)
         else
-          waiting(hunger, right, left, name, ctrl, life - 1, wait + @max_waiting, false)
+          IO.puts("#{name} -- Is waiting...")
+          sleep(round(:math.pow(2, wait + 1)))
+          waiting(hunger, right, left, name, ctrl, life - 1, wait + 1, false)
         end
     end
   #end
@@ -267,7 +271,9 @@ defmodule Philosopher do
     sleep(@eating)                                       # Eating time.
     #Chopstick.return(right, name)                     # Return chopsticks.
     #Chopstick.return(left, name)                      # -||-
-    Chopstick.async_return(left, right, name)
+    #Chopstick.async_return(left, right, name)
+    Chopstick.return(right, name)
+    Chopstick.return(left, name)
     if (hunger - 1 == 0) do                           # Check if no longer hungry.
       IO.puts("#{name} -- Is full")
       send(ctrl, :done)                               # Notify the tester that this one is full.

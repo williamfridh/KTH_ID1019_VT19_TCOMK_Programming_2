@@ -68,21 +68,19 @@ defmodule Chopstick do
   @doc """
   Asynchronous Request.
   """
-  def async_request(c1, c2, name, timeout) do
-    task1 = Task.async(fn -> request(c1, name, timeout) end)
-    task2 = Task.async(fn -> request(c2, name, timeout) end)
-    r1 = Task.await(task1)
-    r2 = Task.await(task2)
-    case {r1, r2} do
-      {_, :timeout} ->
-        IO.puts("#{name} -- Don't want to wait longer for a chopsticks")
-        return(c2, name)
-        :timeout
-      {:timeout, _} ->
-        IO.puts("#{name} -- Don't want to wait longer for a chopsticks")
-        return(c1, name)
-        :timeout
-      {:ok, :ok} -> :ok
+  def async_request(c1, c2, name, timeout) do async_request(c1, c2, name, timeout, 0) end
+  def async_request(c1, c2, name, timeout, count) when count == 2 do :ok end
+  def async_request(c1, c2, name, timeout, count) do
+    send(c1, {:request, self()})
+    send(c2, {:request, self()})
+    receive do
+      :ok ->
+        async_request(c1, c2, name, timeout, count + 1)
+    after timeout ->
+      IO.puts("#{name} -- Don't want to wait longer for a chopstick")
+      return(c1, name)
+      return(c2, name)
+      :timeout
     end
   end
 

@@ -1,0 +1,3 @@
+%{
+  "wx_utils": {:hex, :wx_utils, "0.0.2", "6b3ee8376cf122b0fdbf3f8f511b8083097488aff6d0eb626b97624765ffdf66", [:mix], [], "hexpm", "78bb6d423327e7cf41446a35741fe079fb138a4671d0a01e70223f6219afc3d4"},
+}
