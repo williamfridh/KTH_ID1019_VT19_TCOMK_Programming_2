@@ -11,28 +11,28 @@ defmodule Dinner do
 
   Create a thread that runs init/0.
   """
-  def start do
+  def start(hunger, life) do
     IO.puts("Starting benchmark...")
-    t1 = :os.system_time(:millisecond)
-    spawn(fn -> init(t1) end)
+    spawn(fn -> init(hunger, life) end)
   end
 
 
 
   @doc """
   """
-  def init(t1) do
+  def init(hunger, life) do
     c1 = Chopstick.start()
     c2 = Chopstick.start()
     c3 = Chopstick.start()
     c4 = Chopstick.start()
     c5 = Chopstick.start()
     ctrl = self()
-    Philosopher.start(5, c1, c2, :arendt, ctrl, 20)
-    Philosopher.start(5, c2, c3, :hypatia, ctrl, 20)
-    Philosopher.start(5, c3, c4, :simone, ctrl, 20)
-    Philosopher.start(5, c4, c5, :elisabeth, ctrl, 20)
-    Philosopher.start(5, c5, c1, :ayn, ctrl, 20)
+    Philosopher.start(hunger, c1, c2, :arendt, ctrl, life)
+    Philosopher.start(hunger, c2, c3, :hypatia, ctrl, life)
+    Philosopher.start(hunger, c3, c4, :simone, ctrl, life)
+    Philosopher.start(hunger, c4, c5, :elisabeth, ctrl, life)
+    Philosopher.start(hunger, c5, c1, :ayn, ctrl, life)# ABC
+    t1 = :os.system_time(:millisecond)
     wait(5, [c1, c2, c3, c4, c5], t1)
   end
 
@@ -41,13 +41,10 @@ defmodule Dinner do
   # are terminated when we’re done.
 
   def wait(0, chopsticks, t1) do
-
     t2 = :os.system_time(:millisecond)
     t = t2 - t1
     IO.puts("#{t} milliseconds")
-
     Enum.each(chopsticks, fn(c) -> Chopstick.remove(c) end)
-
   end
 
 

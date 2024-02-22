@@ -183,8 +183,8 @@ defmodule Philosopher do
 
   - ctrl: a controller process that should be informed when the philosopher is done.
   """
-  def start(hunger, right, left, name, ctrl, life) do
-    spawn_link(fn -> dreaming(hunger, right, left, name, ctrl, life) end)
+  def start(hunger, left, right, name, ctrl, life) do
+    spawn_link(fn -> dreaming(hunger, left, right, name, ctrl, life) end)
   end
 
 
@@ -195,6 +195,11 @@ defmodule Philosopher do
   A function made for ranomized sleeping.
   Gives a more realistic simlulation of the final
   test found in the module Dinner.
+
+  Note how :rand.uniform/1 means that the
+  randomization is uniform and thus if you
+  give it 1000 as input an infinite amount
+  of times, then the average would be 500.
   """
   def sleep(0) do :ok end
   def sleep(t) do
@@ -206,14 +211,15 @@ defmodule Philosopher do
   @doc """
   Dreaming.
   """
-  def dreaming(hunger, right, left, name, ctrl, life) do
-    IO.puts("#{name} -- Is dreaming")
+  def dreaming(hunger, left, right, name, ctrl, life) do
+    #IO.puts("#{name} -- Is dreaming")
     sleep(@dreaming)                                   # Sleeping time.
-    IO.puts("#{name} -- Is waiting")
-    waiting(hunger, right, left, name, ctrl, life, 0, false)      # Go to hungry state.
+    #IO.puts("#{name} -- Is waiting")
+    waiting(hunger, left, right, name, ctrl, life, 0)      # Go to hungry state.
   end
 
-  # The waiter makes a cetralized csolution. A bottleneck that can crash everything.
+  # The waiter makes a cetralized csolution.
+  # A bottleneck that can crash everything.
   # Instead, find a decentrilised solution.
   # The chopsticks are the decentrilization?
   # We use a exponential backloff time. Like in CSMA/CD.
@@ -221,7 +227,7 @@ defmodule Philosopher do
   @doc """
   Waiting.
   """
-  def waiting(hunger, right, left, name, ctrl, life, wait, cantMiss) do
+  def waiting(hunger, left, right, name, ctrl, life, wait) do
     #case Chopstick.request(left, name, @max_waiting) do
     #  :ok ->
     #    sleep(@chopsticks)
@@ -247,16 +253,18 @@ defmodule Philosopher do
     #  IO.puts("#{name} -- Missed his/her turn")
     #  waiting(hunger, right, left, name, ctrl, life, wait, true)
     #else
-    case Chopstick.async_request(left, right, name, @max_waiting) do
-      :ok ->
-        eating(hunger, right, left, name, ctrl, life)
+    ref = make_ref()
+    case Chopstick.async_request(left, right, name, @max_waiting, ref) do
+      :granted ->
+        eating(hunger, left, right, name, ctrl, life, ref)
       :timeout ->
         if (life - 1 == 0) do
-          dead(0, right, left, name, ctrl, 0)
+          dead(0, name, ctrl)
         else
-          IO.puts("#{name} -- Is waiting...")
-          sleep(round(:math.pow(2, wait + 1)))
-          waiting(hunger, right, left, name, ctrl, life - 1, wait + 1, false)
+          #IO.puts("#{name} -- Is waiting...")
+          #sleep(round(:math.pow(2, wait)))
+          #IO.puts("#{name} -- Lost a life (#{life})")
+          waiting(hunger, left, right, name, ctrl, life - 1, wait+ 1)
         end
     end
   #end
@@ -267,19 +275,17 @@ defmodule Philosopher do
   @doc """
   Eating.
   """
-  def eating(hunger, right, left, name, ctrl, life) do
-    IO.puts("#{name} -- Starts to eat")               # Starts to eat.
-    sleep(@eating)                                       # Eating time.
-    #Chopstick.return(right, name)                     # Return chopsticks.
-    #Chopstick.return(left, name)                      # -||-
-    #Chopstick.async_return(left, right, name)
-    Chopstick.return(right, name)
-    Chopstick.return(left, name)
-    if (hunger - 1 == 0) do                           # Check if no longer hungry.
-      IO.puts("#{name} -- Is full")
-      send(ctrl, :done)                               # Notify the tester that this one is full.
+  def eating(hunger, left, right, name, ctrl, life, ref) do
+    #IO.puts("#{name} -- Starts to eat")               # Starts to eat.
+    sleep(@eating)                                    # Eating time.
+    Chopstick.return(left, name, ref)                      # -||-
+    Chopstick.return(right, name, ref)                     # Return chopstick.
+    hunger = hunger - 1                               # Update hunger.
+    if (hunger == 0) do                               # If done.
+      IO.puts("#{name} -- Is full with life #{life}")
+      send(ctrl, :done)                               # Notify CTRL.
     else
-      dreaming(hunger - 1, right, left, name, ctrl, life)   # Go back to dreaming.
+      dreaming(hunger, left, right, name, ctrl, life) # Go back to dreaming.
     end
   end
 
@@ -288,7 +294,7 @@ defmodule Philosopher do
   @doc """
   Dead.
   """
-  def dead(hunger, _, _, name, ctrl, _) do
+  def dead(hunger, name, ctrl) do
     IO.puts("#{name} -- Is dead with #{hunger} hunger left")
     send(ctrl, :done)
   end
