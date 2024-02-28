@@ -15,13 +15,27 @@ defmodule Color do
     #x = getLog(depth)
     frac = depth / max                          # Calculate fraction.
 
-    hex = round(255255255 * frac)
+    frac = getLog(frac)
 
-    red = round(hex/1000000)
-    green = round(rem(round(hex/100), 1000))
-    blue = round(rem(hex, 1000000))
+    #IO.puts(frac)
 
+    #x = round(frac * 1000000000000)
 
+    #hex = round(255255255 * frac)
+
+    red = 255 - abs(round(:math.sin(frac*1000) * 255 ))
+    green = 255 - abs(round(:math.sin(rem(round(frac*1000000), 1000)) * 255))
+    blue = 255 - abs(round(:math.sin(rem(round(frac*1000000000), 1000)) * 255))
+
+    #opacity = rem(round(frac*1000000000000), 1000) / 1000
+
+    #IO.puts(red)
+
+    #IO.puts("{:rgb, #{red}, #{green}, #{blue}, #{opacity}}")
+
+    #red = round(red * opacity)
+    #green = round(green * opacity)
+    #blue = round(blue * opacity)
 
     #colorFrac = abs(:math.sin(frac))
 
@@ -33,17 +47,16 @@ defmodule Color do
     #green = round(greenDistance * 255)
     #blue = round(blueDistance * 255)
 
-    #red = round(255 - abs(:math.cos(frac*:math.pi/2)) * 255)
-    #green = round(255 - abs(:math.cos(frac*:math.pi/4)) * 255)
-    #blue = round(255 - abs(:math.cos(frac*:math.pi/6)) * 255)
+    red = round(255 - abs(:math.cos(frac*:math.pi/2)) * 255)
+    green = round(255 - abs(:math.cos(frac*:math.pi/4)) * 255)
+    blue = round(255 - abs(:math.cos(frac*:math.pi/6)) * 255)
 
 
-    #IO.puts("{:rgb, #{red}, #{green}, #{blue}}")
     {:rgb, red, green, blue}
   end
 
-  def getLog(0) do 0 end
-  def getLog(x) do :math.log(x) end
+  def getLog(0.0) do 0.0 end
+  def getLog(x) do :math.log2(x) end
 
   def getRedDistance(frac) when frac >= 0.5 do 0 end
   def getRedDistance(frac) do 1 - frac * 2 end

@@ -73,7 +73,7 @@ defmodule Mandel do
 
 
   def demo(width, height) do
-    small(width, height, -2.6, 1.2, 1.2)
+    small(width, height, -1, 1, 1)
   end
 
   def small(width, height, x0, y0, xn) do
