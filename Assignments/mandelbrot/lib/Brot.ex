@@ -11,10 +11,9 @@ defmodule Brot do
   This function takes the two arguments c (complex number)
   and i, the maximum number of iterations.
   """
-  def mandelbrot({_, i} = c, m) do
-    z0 = Cmplx.new(0, i)
-    i = 0
-    test(i, z0, c, m)
+  def mandelbrot(c, m) do
+    z0 = Cmplx.new(0, 0)
+    test(0, z0, c, m)
   end
 
 
@@ -22,15 +21,19 @@ defmodule Brot do
   @doc """
   Test.
 
-  Tests if the limit is reached.
+  This function tests the depth of a complex number. In the context of the Mandelbrot Set,
+  "depth" typically refers to the level of iteration or the number of iterations performed
+  in the iterative process used to determine whether a point in the complex plane belongs
+  to the Mandelbrot Set or not.
   """
-  def test(i, _, _, m) when i == m - 1 do 0 end # Note that we subtract 1 to get true depth of m.
-  def test(i, z0, c, m) do
-    #IO.puts("Number: #{Cmplx.absolute(z0)}")
-    if (Cmplx.absolute(z0) > 2) do
+  def test(i, _z, _c, m) when i == m - 1 do 0 end # Note that we subtract 1 to get true depth of m.
+  def test(i, z, c, m) do
+    a = Cmplx.absolute(z)                 # Get absolute value.
+    if (a > 2) do                         # Depth found.
       i
-    else
-      test(i + 1, Cmplx.add(Cmplx.sqr(z0), c), c, m)
+    else                                  # Continue measuring.
+      z1 = Cmplx.add(Cmplx.sqr(z), c)
+      test(i + 1, z1, c, m)
     end
   end
 

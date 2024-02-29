@@ -1,67 +1,50 @@
-### Single thread
+Single thread
 
-iex(6)> :timer.tc(fn() -> Mandel.demo(100, 100) end)
-All processes spawned.
-100
-100
-img/small.ppm
-{84704, :ok}
-iex(7)> :timer.tc(fn() -> Mandel.demo(200, 200) end)
-All processes spawned.
-200
-200
-img/small.ppm
-{287840, :ok}
-iex(8)> :timer.tc(fn() -> Mandel.demo(400, 400) end)
-All processes spawned.
-400
-400
-img/small.ppm
-{1462178, :ok}
-iex(9)> :timer.tc(fn() -> Mandel.demo(800, 800) end)
-All processes spawned.
-800
-800
-img/small.ppm
-{5468209, :ok}
-iex(10)> :timer.tc(fn() -> Mandel.demo(1600, 1600) end)
-All processes spawned.
-1600
-1600
-img/small.ppm
-{20040277, :ok}
-iex(11)>
+iex(1)> :timer.tc(fn() -> Mandel.run(1920,1080,64) end)
+1080
+1920
+img/w1920_h1080_d64_.ppm
+{15921600, :ok}
 
-## Multi thread
 
-iex(12)> :timer.tc(fn() -> Mandel.demo(100, 100) end)
-All processes spawned.
-100
-100
-img/small.ppm
-{70148, :ok}
-iex(13)> :timer.tc(fn() -> Mandel.demo(200, 200) end)
-All processes spawned.
-200
-200
-img/small.ppm
-{253409, :ok}
-iex(14)> :timer.tc(fn() -> Mandel.demo(400, 400) end)
-All processes spawned.
-400
-400
-img/small.ppm
-{1007451, :ok}
-iex(15)> :timer.tc(fn() -> Mandel.demo(800, 800) end)
-All processes spawned.
-800
-800
-img/small.ppm
-{4221661, :ok}
-iex(16)> :timer.tc(fn() -> Mandel.demo(1600, 1600) end)
-All processes spawned.
-1600
-1600
-img/small.ppm
-{16373427, :ok}
-iex(17)>
+iex(4)> :timer.tc(fn() -> Mandel.run(1920,1080,1024) end)
+1080
+1920
+img/w1920_h1080_d1024_.ppm
+{84204198, :ok}
+
+
+
+Multi thread
+
+
+iex(15)> :timer.tc(fn() -> MandelP.run(1920,1080,64) end)
+1080
+1920
+img/w1920_h1080_d64_.ppm
+{1854803, :ok}
+
+iex(16)> :timer.tc(fn() -> MandelP.run(1920,1080,1024) end)
+1080
+1920
+img/w1920_h1080_d1024_.ppm
+{14886494, :ok}
+
+
+iex(17)> :timer.tc(fn() -> MandelP.run(1920,1080,4096) end)
+1080
+1920
+img/w1920_h1080_d4096_.ppm
+{56143368, :ok}
+
+iex(18)> :timer.tc(fn() -> MandelP.run(3860,2160,1024) end)
+2160
+3860
+img/w3860_h2160_d1024_.ppm
+{74369209, :ok}
+
+iex(1)> :timer.tc(fn() -> MandelP.run(7720,4320,1024) end)
+4320
+7720
+img/w7720_h4320_d1024_.ppm
+{434987551, :ok}
