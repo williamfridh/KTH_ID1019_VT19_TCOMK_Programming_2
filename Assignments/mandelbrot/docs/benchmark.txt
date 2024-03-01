@@ -30,7 +30,6 @@ iex(16)> :timer.tc(fn() -> MandelP.run(1920,1080,1024) end)
 img/w1920_h1080_d1024_.ppm
 {14886494, :ok}
 
-
 iex(17)> :timer.tc(fn() -> MandelP.run(1920,1080,4096) end)
 1080
 1920
