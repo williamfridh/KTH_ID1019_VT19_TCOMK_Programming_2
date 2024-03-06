@@ -192,9 +192,42 @@ defmodule Huffman do
   compressed: 178600
 
   {318964, :ok}
+
+  # Benchmark
+  iex(18)> :timer.tc(fn() -> Huffman.test("data/lorem_100000.txt") end)
+  chars 99999
+  bytes 99999
+  alphabet 41
+  compressed: 53233
+  eeeeeeeeee
+  {80215, :ok}
+
+  iex(22)> :timer.tc(fn() -> Huffman.test("data/lorem_200000.txt") end)
+  chars 199999
+  bytes 199999
+  alphabet 41
+  compressed: 106466
+  eeeeeeeeee
+  {177965, :ok}
+
+  iex(27)> :timer.tc(fn() -> Huffman.test("data/lorem_300000.txt") end)
+  chars 299999
+  bytes 299999
+  alphabet 41
+  compressed: 159698
+  eeeeeeeeee
+  {237636, :ok}
+
+  iex(33)> :timer.tc(fn() -> Huffman.test("data/lorem_400000.txt") end)
+  chars 399999
+  bytes 399999
+  alphabet 41
+  compressed: 212931
+  eeeeeeeeee
+  {462744, :ok}
   """
-  def test do
-    {:ok, text, n, b} = read("data/kallocain.txt")
+  def test (file) do
+    {:ok, text, n, b} = read(file)
     :io.format("chars ~w\n bytes ~w\n", [n, b])
     freq = freq(text)
     :io.format(" alphabet ~w\n", [length(freq)])
